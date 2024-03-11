@@ -63,13 +63,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: use Kepler action to deploy cluster
+        uses: sustainable-computing-io/kepler-action@main
+        with:
+          ebpfprovider: libbpf
+          cluster_provider: ${{matrix.cluster_provider}}
+          local_dev_cluster_version: v0.0.4
+          prometheus_enable: true
+          tekton_enable: true
+
       - name: Run Tests
         run: |
           export INSTANCE_ID="${{ needs.setup-runner.outputs.instance_id }}"
           echo "Running tests on self-hosted runner with instance ${INSTANCE_ID}"
           uname -a # or any other command
           cat /etc/os-release 
-          cat /proc/cpuinfo 
+          cat /proc/cpuinfo
+          kubectl get po --all-namespaces
 
   destroy-runner:
     if: always()
